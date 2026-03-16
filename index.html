@@ -83,12 +83,25 @@
             pointer-events: none;
         }
 
+        .wheel.blinking {
+            animation: blink 0.3s infinite;
+        }
+
         @keyframes spin {
             from {
                 transform: rotate(0deg);
             }
             to {
                 transform: rotate(3600deg);
+            }
+        }
+
+        @keyframes blink {
+            0%, 100% {
+                filter: brightness(1);
+            }
+            50% {
+                filter: brightness(1.5);
             }
         }
 
@@ -193,7 +206,7 @@
             padding: 20px;
             border-radius: 10px;
             margin-top: 20px;
-            min-height: 200px;
+            min-height: 150px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -207,14 +220,6 @@
             opacity: 1;
             transform: scale(1);
             pointer-events: auto;
-        }
-
-        .exercise-image {
-            width: 100%;
-            max-height: 150px;
-            object-fit: contain;
-            margin-bottom: 15px;
-            border-radius: 8px;
         }
 
         .exercise-title {
@@ -296,14 +301,6 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
-        .modal-image {
-            width: 100%;
-            max-height: 200px;
-            object-fit: contain;
-            margin-bottom: 20px;
-            border-radius: 10px;
-        }
-
         .modal-title {
             font-size: 36px;
             font-weight: bold;
@@ -371,12 +368,11 @@
 
         <div class="buttons">
             <button class="spin-btn" id="spinBtn" onclick="spinWheel()">סובב את הגלגל</button>
-            <button class="continue-btn" id="continueBtn" onclick="continueSpinning()">המשך סיבוב</button>
+            <button class="continue-btn" id="continueBtn" onclick="continueSpinning()">המשך סיבוג</button>
             <button class="reset-btn" onclick="resetWheel()">אפס</button>
         </div>
 
         <div class="exercise-info" id="exerciseInfo">
-            <img id="exerciseImage" class="exercise-image" src="" alt="תמונת התרגיל">
             <div class="exercise-title" id="exerciseTitle">בחר תרגיל</div>
             <div class="exercise-description" id="exerciseDesc">לחץ על הכפתור "סובב את הגלגל" כדי להתחיל</div>
         </div>
@@ -387,7 +383,6 @@
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
             <div class="modal-color-bar" id="modalColorBar"></div>
-            <img id="modalImage" class="modal-image" src="" alt="תמונת התרגיל">
             <div class="modal-title" id="modalTitle">תרגיל</div>
             <div class="modal-description" id="modalDescription">תיאור התרגיל</div>
             <div class="modal-buttons">
@@ -398,79 +393,67 @@
     </div>
 
     <script>
-        // 12 תרגילים שונים עם צבעים ותמונות
+        // 12 תרגילים שונים עם צבעים
         const exercises = [
             {
                 name: "שכיבות שמיכה",
                 description: "10 שכיבות שמיכה - לחזק את הגוף",
-                color: "#FF6B6B",
-                image: "https://via.placeholder.com/200x150/FF6B6B/FFFFFF?text=שכיבות+שמיכה"
+                color: "#FF6B6B"
             },
             {
                 name: "כפיפות בטן",
                 description: "10 כפיפות בטן - לחזק את הבטן",
-                color: "#FF8E72",
-                image: "https://via.placeholder.com/200x150/FF8E72/FFFFFF?text=כפיפות+בטן"
+                color: "#FF8E72"
             },
             {
                 name: "קפיצות כוכב",
                 description: "15 קפיצות כוכב - קפוץ ופרוש ידיים ורגליים",
-                color: "#FFA500",
-                image: "https://via.placeholder.com/200x150/FFA500/FFFFFF?text=קפיצות+כוכב"
+                color: "#FFA500"
             },
             {
                 name: "טיפוס הרים",
                 description: "20 טיפוס הרים - תנועת קפיצה מחליפה רגליים",
-                color: "#FFD93D",
-                image: "https://via.placeholder.com/200x150/FFD93D/333333?text=טיפוס+הרים"
+                color: "#FFD93D"
             },
             {
                 name: "פלאנק",
                 description: "פלאנק 20 שניות - עמדה יציבה על הזרועות",
-                color: "#6BCB77",
-                image: "https://via.placeholder.com/200x150/6BCB77/FFFFFF?text=פלאנק"
+                color: "#6BCB77"
             },
             {
                 name: "סקוואטים",
                 description: "10 סקוואטים - כיפוף ופרישת רגליים",
-                color: "#4D96FF",
-                image: "https://via.placeholder.com/200x150/4D96FF/FFFFFF?text=סקוואטים"
+                color: "#4D96FF"
             },
             {
                 name: "תנועת אופניים",
                 description: "לשכב על הגב ולעשות תנועת אופניים רק עם הרגליים 15 שניות",
-                color: "#9D84B7",
-                image: "https://via.placeholder.com/200x150/9D84B7/FFFFFF?text=תנועת+אופניים"
+                color: "#9D84B7"
             },
             {
                 name: "עמידה על רגל אחת",
                 description: "10 שניות על רגל אחת ו-10 שניות על הרגל השנייה - לעמוד יציב בלי לזוז",
-                color: "#FF1493",
-                image: "https://via.placeholder.com/200x150/FF1493/FFFFFF?text=עמידה+על+רגל"
+                color: "#FF1493"
             },
             {
                 name: "קפיצות על רגל אחת",
                 description: "לעמוד על רגל אחת ולהסתובב במקום בקפיצות קטנות 10 שניות ואז להחליף לרגל השנייה",
-                color: "#00CED1",
-                image: "https://via.placeholder.com/200x150/00CED1/FFFFFF?text=קפיצות+על+רגל"
+                color: "#00CED1"
             },
             {
                 name: "קום עם קפיצה",
                 description: "לשבת על הרצפה ולקום מהר עם קפיצה גבוהה באוויר 10 פעמים",
-                color: "#32CD32",
-                image: "https://via.placeholder.com/200x150/32CD32/FFFFFF?text=קום+עם+קפיצה"
+                color: "#32CD32"
             },
             {
                 name: "ריצה במקום",
                 description: "ריצה במקום 30 שניות - במהירות מרבית",
-                color: "#FFB6C1",
-                image: "https://via.placeholder.com/200x150/FFB6C1/333333?text=ריצה+במקום"
+                color: "#FFB6C1"
             },
             {
                 name: "קפיצות צפרדע",
                 description: "15 קפיצות צפרדע - כיפוף עמוק וקפיצה גבוהה",
-                color: "#87CEEB",
-                image: "https://via.placeholder.com/200x150/87CEEB/FFFFFF?text=קפיצות+צפרדע"
+                color: "#87CEEB"
             }
         ];
 
@@ -491,25 +474,38 @@
             document.getElementById('continueBtn').classList.remove('show');
 
             const wheel = document.getElementById('wheel');
-            const randomSpin = Math.floor(Math.random() * 3600) + 3600;
             
-            wheel.classList.remove('hidden');
+            // בחר צבע אקראי
+            const randomExerciseIndex = Math.floor(Math.random() * exercises.length);
+            const randomDegrees = randomExerciseIndex * 30;
+            
+            // סיבוב מספר פעמים מלא בתוספת הזווית האקראית
+            const fullSpins = 10; // מספר הסיבובים המלאים
+            const totalDegrees = (fullSpins * 360) + randomDegrees;
+            
+            wheel.classList.remove('hidden', 'blinking');
             wheel.style.opacity = '1';
             wheel.classList.add('spinning');
 
             setTimeout(() => {
+                // הפסק את האנימציה
                 wheel.classList.remove('spinning');
                 wheel.style.transition = 'none';
-                wheel.style.transform = `rotate(${randomSpin % 360}deg)`;
+                wheel.style.transform = `rotate(${totalDegrees}deg)`;
                 
-                // חישוב איזה תרגיל נבחר
-                const selectedIndex = Math.floor((randomSpin % 360) / 30);
-                currentExercise = exercises[selectedIndex];
+                // שמור את התרגיל שנבחר
+                currentExercise = exercises[randomExerciseIndex];
                 
-                // הצג את המודל
+                // התחל הבהוב 2 שניות
                 setTimeout(() => {
-                    showModal(currentExercise);
-                    startTimer();
+                    wheel.classList.add('blinking');
+                    
+                    // אחרי 2 שניות של הבהוב, הצג את המודל
+                    setTimeout(() => {
+                        wheel.classList.remove('blinking');
+                        showModal(currentExercise);
+                        startTimer();
+                    }, 2000);
                 }, 300);
 
                 isSpinning = false;
@@ -526,8 +522,6 @@
             document.getElementById('modalTitle').textContent = exercise.name;
             document.getElementById('modalDescription').textContent = exercise.description;
             document.getElementById('modalColorBar').style.background = exercise.color;
-            document.getElementById('modalImage').src = exercise.image;
-            document.getElementById('modalImage').alt = exercise.name;
             
             modal.classList.add('show');
         }
@@ -544,11 +538,9 @@
             setTimeout(() => {
                 document.getElementById('exerciseTitle').textContent = currentExercise.name;
                 document.getElementById('exerciseDesc').textContent = currentExercise.description;
-                document.getElementById('exerciseImage').src = currentExercise.image;
-                document.getElementById('exerciseImage').alt = currentExercise.name;
                 document.getElementById('exerciseInfo').classList.add('show');
                 
-                // הצג כפתור "המשך סיבוב"
+                // הצג כפתור "המשך סיבוג"
                 document.getElementById('continueBtn').classList.add('show');
             }, 300);
         }
@@ -588,11 +580,10 @@
             
             wheel.style.transition = 'none';
             wheel.style.transform = 'rotate(0deg)';
-            wheel.classList.remove('hidden');
+            wheel.classList.remove('hidden', 'blinking');
             
             document.getElementById('exerciseTitle').textContent = 'בחר תרגיל';
             document.getElementById('exerciseDesc').textContent = 'לחץ על הכפתור "סובב את הגלגל" כדי להתחיל';
-            document.getElementById('exerciseImage').src = '';
             document.getElementById('exerciseInfo').classList.remove('show');
             document.getElementById('continueBtn').classList.remove('show');
             document.getElementById('timer').textContent = '0:00';
