@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>גלגל התרגילים</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .container {
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .timer {
+            font-size: 48px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 30px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: 0 auto 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .wheel {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            background: conic-gradient(
+                #FF6B6B 0deg 30deg,
+                #FF8E72 30deg 60deg,
+                #FFA500 60deg 90deg,
+                #FFD93D 90deg 120deg,
+                #6BCB77 120deg 150deg,
+                #4D96FF 150deg 180deg,
+                #9D84B7 180deg 210deg,
+                #FF1493 210deg 240deg,
+                #00CED1 240deg 270deg,
+                #32CD32 270deg 300deg,
+                #FFB6C1 300deg 330deg,
+                #87CEEB 330deg 360deg
+            );
+            border: 8px solid white;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            transition: transform 0.1s;
+            opacity: 1;
+        }
+
+        .wheel.spinning {
+            animation: spin 8s cubic-bezier(0.17, 0.67, 0.12, 0.98);
+        }
+
+        .wheel.hidden {
+            opacity: 0;
+            transform: scale(0.8);
+            pointer-events: none;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(3600deg);
+            }
+        }
+
+        .center-circle {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: #333;
+            font-size: 14px;
+            text-align: center;
+            padding: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+
+        .pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid #333;
+            z-index: 20;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .spin-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .spin-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .spin-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: scale(1);
+        }
+
+        .continue-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: none;
+        }
+
+        .continue-btn.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .continue-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .reset-btn {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .reset-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .exercise-info {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 0.5s ease;
+            pointer-events: none;
+        }
+
+        .exercise-info.show {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+
+        .exercise-image {
+            width: 100%;
+            max-height: 150px;
+            object-fit: contain;
+            margin-bottom: 15px;
+            border-radius: 8px;
+        }
+
+        .exercise-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .exercise-description {
+            font-size: 16px;
+            color: #666;
+        }
+
+        .time-display {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+            opacity: 1;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal {
+            background: white;
+            padding: 50px 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            margin: auto;
+        }
+
+        .modal-overlay.show .modal {
+            transform: scale(1);
+        }
+
+        .modal-color-bar {
+            width: 100%;
+            height: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-image {
+            width: 100%;
+            max-height: 200px;
+            object-fit: contain;
+            margin-bottom: 20px;
+            border-radius: 10px;
+        }
+
+        .modal-title {
+            font-size: 36px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .modal-description {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            padding: 15px 40px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .modal-continue {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex: 1;
+        }
+
+        .modal-continue:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .modal-reset {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .modal-reset:hover {
+            background: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎡 גלגל התרגילים</h1>
+        <p class="subtitle">סובב את הגלגל ובחר את התרגיל שלך!</p>
+        
+        <div class="timer" id="timer">0:00</div>
+
+        <div class="wheel-container">
+            <div class="pointer"></div>
+            <div class="wheel" id="wheel">
+                <div class="center-circle" id="centerText">סובב אותי!</div>
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button class="spin-btn" id="spinBtn" onclick="spinWheel()">סובב את הגלגל</button>
+            <button class="continue-btn" id="continueBtn" onclick="continueSpinning()">המשך סיבוב</button>
+            <button class="reset-btn" onclick="resetWheel()">אפס</button>
+        </div>
+
+        <div class="exercise-info" id="exerciseInfo">
+            <img id="exerciseImage" class="exercise-image" src="" alt="תמונת התרגיל">
+            <div class="exercise-title" id="exerciseTitle">בחר תרגיל</div>
+            <div class="exercise-description" id="exerciseDesc">לחץ על הכפתור "סובב את הגלגל" כדי להתחיל</div>
+        </div>
+
+        <div class="time-display" id="timeDisplay"></div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-color-bar" id="modalColorBar"></div>
+            <img id="modalImage" class="modal-image" src="" alt="תמונת התרגיל">
+            <div class="modal-title" id="modalTitle">תרגיל</div>
+            <div class="modal-description" id="modalDescription">תיאור התרגיל</div>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-continue" onclick="closeModalAndContinue()">המשך סיבוב</button>
+                <button class="modal-btn modal-reset" onclick="resetWheel()">אפס</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 12 תרגילים שונים עם צבעים ותמונות
+        const exercises = [
+            {
+                name: "שכיבות שמיכה",
+                description: "10 שכיבות שמיכה - לחזק את הגוף",
+                color: "#FF6B6B",
+                image: "https://via.placeholder.com/200x150/FF6B6B/FFFFFF?text=שכיבות+שמיכה"
+            },
+            {
+                name: "כפיפות בטן",
+                description: "10 כפיפות בטן - לחזק את הבטן",
+                color: "#FF8E72",
+                image: "https://via.placeholder.com/200x150/FF8E72/FFFFFF?text=כפיפות+בטן"
+            },
+            {
+                name: "קפיצות כוכב",
+                description: "15 קפיצות כוכב - קפוץ ופרוש ידיים ורגליים",
+                color: "#FFA500",
+                image: "https://via.placeholder.com/200x150/FFA500/FFFFFF?text=קפיצות+כוכב"
+            },
+            {
+                name: "טיפוס הרים",
+                description: "20 טיפוס הרים - תנועת קפיצה מחליפה רגליים",
+                color: "#FFD93D",
+                image: "https://via.placeholder.com/200x150/FFD93D/333333?text=טיפוס+הרים"
+            },
+            {
+                name: "פלאנק",
+                description: "פלאנק 20 שניות - עמדה יציבה על הזרועות",
+                color: "#6BCB77",
+                image: "https://via.placeholder.com/200x150/6BCB77/FFFFFF?text=פלאנק"
+            },
+            {
+                name: "סקוואטים",
+                description: "10 סקוואטים - כיפוף ופרישת רגליים",
+                color: "#4D96FF",
+                image: "https://via.placeholder.com/200x150/4D96FF/FFFFFF?text=סקוואטים"
+            },
+            {
+                name: "תנועת אופניים",
+                description: "לשכב על הגב ולעשות תנועת אופניים רק עם הרגליים 15 שניות",
+                color: "#9D84B7",
+                image: "https://via.placeholder.com/200x150/9D84B7/FFFFFF?text=תנועת+אופניים"
+            },
+            {
+                name: "עמידה על רגל אחת",
+                description: "10 שניות על רגל אחת ו-10 שניות על הרגל השנייה - לעמוד יציב בלי לזוז",
+                color: "#FF1493",
+                image: "https://via.placeholder.com/200x150/FF1493/FFFFFF?text=עמידה+על+רגל"
+            },
+            {
+                name: "קפיצות על רגל אחת",
+                description: "לעמוד על רגל אחת ולהסתובב במקום בקפיצות קטנות 10 שניות ואז להחליף לרגל השנייה",
+                color: "#00CED1",
+                image: "https://via.placeholder.com/200x150/00CED1/FFFFFF?text=קפיצות+על+רגל"
+            },
+            {
+                name: "קום עם קפיצה",
+                description: "לשבת על הרצפה ולקום מהר עם קפיצה גבוהה באוויר 10 פעמים",
+                color: "#32CD32",
+                image: "https://via.placeholder.com/200x150/32CD32/FFFFFF?text=קום+עם+קפיצה"
+            },
+            {
+                name: "ריצה במקום",
+                description: "ריצה במקום 30 שניות - במהירות מרבית",
+                color: "#FFB6C1",
+                image: "https://via.placeholder.com/200x150/FFB6C1/333333?text=ריצה+במקום"
+            },
+            {
+                name: "קפיצות צפרדע",
+                description: "15 קפיצות צפרדע - כיפוף עמוק וקפיצה גבוהה",
+                color: "#87CEEB",
+                image: "https://via.placeholder.com/200x150/87CEEB/FFFFFF?text=קפיצות+צפרדע"
+            }
+        ];
+
+        let isSpinning = false;
+        let timerInterval = null;
+        let timeElapsed = 0;
+        let currentExercise = null;
+
+        function spinWheel() {
+            if (isSpinning) return;
+
+            isSpinning = true;
+            const spinBtn = document.getElementById('spinBtn');
+            spinBtn.disabled = true;
+
+            // הסתר את מודל המידע
+            document.getElementById('exerciseInfo').classList.remove('show');
+            document.getElementById('continueBtn').classList.remove('show');
+
+            const wheel = document.getElementById('wheel');
+            const randomSpin = Math.floor(Math.random() * 3600) + 3600;
+            
+            wheel.classList.remove('hidden');
+            wheel.style.opacity = '1';
+            wheel.classList.add('spinning');
+
+            setTimeout(() => {
+                wheel.classList.remove('spinning');
+                wheel.style.transition = 'none';
+                wheel.style.transform = `rotate(${randomSpin % 360}deg)`;
+                
+                // חישוב איזה תרגיל נבחר
+                const selectedIndex = Math.floor((randomSpin % 360) / 30);
+                currentExercise = exercises[selectedIndex];
+                
+                // הצג את המודל
+                setTimeout(() => {
+                    showModal(currentExercise);
+                    startTimer();
+                }, 300);
+
+                isSpinning = false;
+                spinBtn.disabled = false;
+
+                setTimeout(() => {
+                    wheel.style.transition = 'transform 0.1s';
+                }, 10);
+            }, 8000);
+        }
+
+        function showModal(exercise) {
+            const modal = document.getElementById('modalOverlay');
+            document.getElementById('modalTitle').textContent = exercise.name;
+            document.getElementById('modalDescription').textContent = exercise.description;
+            document.getElementById('modalColorBar').style.background = exercise.color;
+            document.getElementById('modalImage').src = exercise.image;
+            document.getElementById('modalImage').alt = exercise.name;
+            
+            modal.classList.add('show');
+        }
+
+        function closeModalAndContinue() {
+            const modal = document.getElementById('modalOverlay');
+            modal.classList.remove('show');
+            
+            // הסתר את הגלגל עם אנימציה
+            const wheel = document.getElementById('wheel');
+            wheel.classList.add('hidden');
+
+            // הצג מידע על התרגיל בעמוד הראשי
+            setTimeout(() => {
+                document.getElementById('exerciseTitle').textContent = currentExercise.name;
+                document.getElementById('exerciseDesc').textContent = currentExercise.description;
+                document.getElementById('exerciseImage').src = currentExercise.image;
+                document.getElementById('exerciseImage').alt = currentExercise.name;
+                document.getElementById('exerciseInfo').classList.add('show');
+                
+                // הצג כפתור "המשך סיבוב"
+                document.getElementById('continueBtn').classList.add('show');
+            }, 300);
+        }
+
+        function continueSpinning() {
+            // הסתר את מידע התרגיל
+            document.getElementById('exerciseInfo').classList.remove('show');
+            document.getElementById('continueBtn').classList.remove('show');
+            
+            // הצג את הגלגל שוב
+            const wheel = document.getElementById('wheel');
+            wheel.classList.remove('hidden');
+
+            // אפס טיימר
+            if (timerInterval) clearInterval(timerInterval);
+        }
+
+        function startTimer() {
+            timeElapsed = 0;
+            if (timerInterval) clearInterval(timerInterval);
+
+            timerInterval = setInterval(() => {
+                timeElapsed++;
+                const minutes = Math.floor(timeElapsed / 60);
+                const seconds = timeElapsed % 60;
+                document.getElementById('timer').textContent = 
+                    `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                document.getElementById('timeDisplay').textContent = 
+                    `זמן שחלף: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function resetWheel() {
+            isSpinning = false;
+            const wheel = document.getElementById('wheel');
+            const modal = document.getElementById('modalOverlay');
+            
+            wheel.style.transition = 'none';
+            wheel.style.transform = 'rotate(0deg)';
+            wheel.classList.remove('hidden');
+            
+            document.getElementById('exerciseTitle').textContent = 'בחר תרגיל';
+            document.getElementById('exerciseDesc').textContent = 'לחץ על הכפתור "סובב את הגלגל" כדי להתחיל';
+            document.getElementById('exerciseImage').src = '';
+            document.getElementById('exerciseInfo').classList.remove('show');
+            document.getElementById('continueBtn').classList.remove('show');
+            document.getElementById('timer').textContent = '0:00';
+            document.getElementById('timeDisplay').textContent = '';
+            
+            modal.classList.remove('show');
+            
+            if (timerInterval) clearInterval(timerInterval);
+            
+            document.getElementById('spinBtn').disabled = false;
+
+            setTimeout(() => {
+                wheel.style.transition = 'transform 0.1s';
+            }, 10);
+        }
+
+        // אתחול ראשוני
+        document.getElementById('spinBtn').disabled = false;
+    </script>
+</body>
+</html>
