@@ -69,8 +69,22 @@
             );
             border: 8px solid white;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            transition: transform 0.1s;
             opacity: 1;
-            filter: brightness(1);
+        }
+
+        .wheel.spinning {
+            animation: spin 8s cubic-bezier(0.17, 0.67, 0.12, 0.98);
+        }
+
+        .wheel.hidden {
+            opacity: 0;
+            transform: scale(0.8);
+            pointer-events: none;
+        }
+
+        .wheel.blinking {
+            animation: blink 0.3s infinite;
         }
 
         @keyframes spin {
@@ -82,19 +96,13 @@
             }
         }
 
-        @keyframes blinkEffect {
+        @keyframes blink {
             0%, 100% {
                 filter: brightness(1);
             }
             50% {
-                filter: brightness(1.8) drop-shadow(0 0 20px rgba(255,255,255,0.8));
+                filter: brightness(1.5);
             }
-        }
-
-        .wheel.hidden {
-            opacity: 0;
-            transform: scale(0.8);
-            pointer-events: none;
         }
 
         .center-circle {
@@ -378,7 +386,7 @@
             <div class="modal-title" id="modalTitle">תרגיל</div>
             <div class="modal-description" id="modalDescription">תיאור התרגיל</div>
             <div class="modal-buttons">
-                <button class="modal-btn modal-continue" onclick="closeModalAndContinue()">המשך סיבוג</button>
+                <button class="modal-btn modal-continue" onclick="closeModalAndContinue()">המשך סיבוב</button>
                 <button class="modal-btn modal-reset" onclick="resetWheel()">אפס</button>
             </div>
         </div>
@@ -467,40 +475,45 @@
 
             const wheel = document.getElementById('wheel');
             
-            // בחר תרגיל אקראי
+            // בחר צבע אקראי
             const randomExerciseIndex = Math.floor(Math.random() * exercises.length);
+            const randomDegrees = randomExerciseIndex * 30;
             
-            // חשב את הדרגות לעצירה באמצע הצבע (15 מעלות מתוך 30 = אמצע)
-            const stopDegrees = randomExerciseIndex * 30 + 15;
+            // סיבוב מספר פעמים מלא בתוספת הזווית האקראית
+            const fullSpins = 10; // מספר הסיבובים המלאים
+            const totalDegrees = (fullSpins * 360) + randomDegrees;
             
-            wheel.classList.remove('hidden');
+            wheel.classList.remove('hidden', 'blinking');
             wheel.style.opacity = '1';
-            wheel.style.filter = 'brightness(1)';
-            
-            // התחל סיבוב
-            wheel.style.animation = 'spin 8s linear forwards';
+            wheel.classList.add('spinning');
 
-            // אחרי 8 שניות - עצור על הצבע האקראי
             setTimeout(() => {
-                wheel.style.animation = 'none';
-                wheel.style.transform = `rotate(${3600 + stopDegrees}deg)`;
+                // הפסק את האנימציה
+                wheel.classList.remove('spinning');
+                wheel.style.transition = 'none';
+                wheel.style.transform = `rotate(${totalDegrees}deg)`;
                 
                 // שמור את התרגיל שנבחר
                 currentExercise = exercises[randomExerciseIndex];
                 
-                // התחל הבהוב מיד
-                wheel.style.animation = `blinkEffect 0.3s infinite`;
-                
-                // אחרי 2 שניות של הבהוב - הצג את המודל
+                // התחל הבהוב 2 שניות
                 setTimeout(() => {
-                    wheel.style.animation = 'none';
-                    wheel.style.filter = 'brightness(1)';
-                    showModal(currentExercise);
-                    startTimer();
-                }, 2000);
+                    wheel.classList.add('blinking');
+                    
+                    // אחרי 2 שניות של הבהוב, הצג את המודל
+                    setTimeout(() => {
+                        wheel.classList.remove('blinking');
+                        showModal(currentExercise);
+                        startTimer();
+                    }, 2000);
+                }, 300);
 
                 isSpinning = false;
                 spinBtn.disabled = false;
+
+                setTimeout(() => {
+                    wheel.style.transition = 'transform 0.1s';
+                }, 10);
             }, 8000);
         }
 
@@ -565,10 +578,9 @@
             const wheel = document.getElementById('wheel');
             const modal = document.getElementById('modalOverlay');
             
-            wheel.style.animation = 'none';
+            wheel.style.transition = 'none';
             wheel.style.transform = 'rotate(0deg)';
-            wheel.style.filter = 'brightness(1)';
-            wheel.classList.remove('hidden');
+            wheel.classList.remove('hidden', 'blinking');
             
             document.getElementById('exerciseTitle').textContent = 'בחר תרגיל';
             document.getElementById('exerciseDesc').textContent = 'לחץ על הכפתור "סובב את הגלגל" כדי להתחיל';
@@ -582,6 +594,10 @@
             if (timerInterval) clearInterval(timerInterval);
             
             document.getElementById('spinBtn').disabled = false;
+
+            setTimeout(() => {
+                wheel.style.transition = 'transform 0.1s';
+            }, 10);
         }
 
         // אתחול ראשוני
